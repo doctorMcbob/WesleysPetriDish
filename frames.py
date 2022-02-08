@@ -1,13 +1,15 @@
 import pygame
+from pygame import Rect
 from pygame.locals import *
 
 from display import get_view, drawn_view
+import printer
 
 frames = {}
 
 order = ["x", "y", "z", "a", "b", "c", "d", "e", "f", "g"]
 
-def add_frame(name, position, pixelwidth, cube, style, viewpos, axis1, axis2, axis3, padding=4):
+def add_frame(name, position, dimensions, pixelwidth, cube, style, viewpos, axis1, axis2, axis3, padding=4):
     """
     name - string identifier
     position - where on screen
@@ -21,6 +23,7 @@ def add_frame(name, position, pixelwidth, cube, style, viewpos, axis1, axis2, ax
         "cube": cube,
         "views": [],
         "position": position,
+        "dimensions": dimensions,
         "viewpos": viewpos,
         "axis1": axis1,
         "axis2": axis2,
@@ -29,11 +32,6 @@ def add_frame(name, position, pixelwidth, cube, style, viewpos, axis1, axis2, ax
         "style": style,
         "pixelwidth": pixelwidth,
     }
-    if style.startswith("list"):
-        noun, data = style.split(":")
-        frames[name]["style"] = noun
-        w, h = data.split(",")
-        frames[name]["dimensions"] = int(w), int(h)
     if style == "animation":
         frames[name]["frame"] = 0
     update_frame(name)
@@ -41,14 +39,21 @@ def add_frame(name, position, pixelwidth, cube, style, viewpos, axis1, axis2, ax
 def draw_frame(dest, name, font, box=False):
     frame = frames[name]
     ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["axis3"]
+    width, height = frame["dimensions"]
+    x, y = frame["position"]
+    if box:
+        pygame.draw.rect(dest, box, Rect((x, y), (width, height)), width=2)
+        x+=8
+        y+=8
+    dest.blit(font.render(name, 0, (0, 0, 0)), (x, y))
+    dest.blit(font.render(frame["style"], 0, (0, 0, 0)), (x, y + 16))
+    dest.blit(font.render("{}".format(frame["viewpos"]), 0, (0, 0, 0)), (x+64, y))
+    dest.blit(font.render("axis1: {}".format(order[frame["axis1"]]), 0, (0, 0, 0)), (x+128, y + 16))
+    dest.blit(font.render("axis2: {}".format(order[frame["axis2"]]), 0, (0, 0, 0)), (x+256, y + 16))
+    dest.blit(font.render("over : {}".format(order[frame["axis3"]]), 0, (0, 0, 0)), (x+384, y + 16))
+    y += 32
+        
     if frame["style"] == "list":
-        width, height = frame["dimensions"]
-        x, y = frame["position"]
-        if box:
-            pygame.draw.rect(dest, box, Rect((x, y), (width, height)), width=2)
-            x+=8
-            y+=8
-        y += 32
         for i, view in enumerate(frame["views"]):
             drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
             if x + drawn.get_width() + frame["padding"] > frame["position"][0] + width:
@@ -59,9 +64,13 @@ def draw_frame(dest, name, font, box=False):
                 break
             dest.blit(drawn, (x, y))
             x += drawn.get_width() + frame["padding"]
-    dest.blit(font.render(name, 0, (0, 0, 0)), frame["position"])
-    dest.blit(font.render(frame["style"], 0, (0, 0, 0)), (frame["position"][0], frame["position"][1] + 16))
-    
+
+    elif frame["style"] == "animation":
+        view = frame["views"][frame["frame"] % len(frame["views"])]
+        frame["frame"] += 1
+        drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
+        dest.blit(drawn, (x, y))
+            
 def update_frame(name,
                  cube=None, pixelwidth=None,
                  viewpos=None, position=None, dimensions=None,
@@ -89,3 +98,23 @@ def update_frame(name,
         viewpos = tuple([v + (i * (_i == ax3)) for _i, v in enumerate(frame["viewpos"])])
         frame["views"].append(get_view(frame["cube"], viewpos, ax1, ax2))
 
+def get_frame_at(pos):
+    for name in frames:
+        frame = frames[name]
+        rect = Rect(frame["position"], frame["dimensions"])
+
+        if rect.collidepoint(pos):
+            return name
+    return None
+
+def get_frame_data(name):
+    return frames[name]
+
+def export_to_gif(name):
+    frame = frames[name]
+    for view in frame["views"]:
+        printer.save_surface(drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)))
+    printer.save_em()
+    printer.make_gif()
+    printer.clear_em()
+    

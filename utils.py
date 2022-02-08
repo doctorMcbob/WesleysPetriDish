@@ -36,3 +36,15 @@ def randomize2d(board):
         for y in range(len(board)):
             setAt(board, (x, y), randint(0, 1))
 
+def expect_input(expectlist=[], args=None, cb=lambda *args:None):
+    cb(args)
+    while True:
+        pygame.display.update()
+        for e in pygame.event.get():
+            if e.type == QUIT:
+                return None
+            if e.type == KEYDOWN:
+                if expectlist:
+                    if e.key in expectlist: return e.key
+                else: return e.key
+
