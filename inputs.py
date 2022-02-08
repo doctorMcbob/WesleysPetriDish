@@ -54,6 +54,7 @@ def expect_input(expectlist=[], args=None, cb=lambda *args:None):
 
 def select_from_list(dest, position, font, l, args=None, cb=None):
     idx = 0
+    if not l: return None
     while True:
         surf = Surface((256, 32*len(l)))
         surf.fill((230, 230, 230))
@@ -100,6 +101,9 @@ def input_frame(dest, font, args=None, cb=lambda *args: None):
     dest.blit(font.render("Style:", 0, (0, 0, 0)), (0, 0))
     style = select_from_list(dest, (64, 32), font, frames.styles)
     if style is None: return None
+    dest.blit(font.render("Cube:", 0, (0, 0, 0)), (0, 0))
+    cube = select_from_list(des, (64, 32), font, cubes.get_cube_names())
+    if cube is None: return None
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
     """style bool is a toggle 0/1, style int requires syntax int:9 for upper bound of 9"""
