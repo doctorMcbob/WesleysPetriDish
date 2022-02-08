@@ -38,7 +38,7 @@ CLOCK = pygame.time.Clock()
 
 order = ["x", "y", "z", "a", "b", "c", "d", "e", "f", "g"]
 mpos = (0, 0)
-add_frame("split", (WIDTH//2, 0), (WIDTH//2, HEIGHT), PW, cube, "animation", tuple(pos), ax1, ax2, ax3)
+add_frame("split", (WIDTH//2, 0), (WIDTH//2, HEIGHT), PW, cube, "list", tuple(pos), ax1, ax2, ax3)
 add_frame("show", (0, 0), (WIDTH//2, HEIGHT), PW*2, cube, "animation", tuple(pos), ax1, ax2, ax3)
 while True:
     name = get_frame_at(mpos)
