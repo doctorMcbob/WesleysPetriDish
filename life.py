@@ -8,10 +8,12 @@ pygame.init()
 import sys
 
 from multiarray import ndimensional
-from display import get_view, drawn_view, screenshot, input_board
+from display import get_view, drawn_view, screenshot
+from inputs import input_board
 from utils import randomize2d
 from automata import life2d
-from frames import add_frame, draw_frame, update_frame, get_frame_at, get_frame_data, export_to_gif
+from frames import update_all, add_frame, draw_frame, update_frame, get_frame_at, get_frame_data, export_to_gif
+import cubes
 
 n = 3
 d = 32
@@ -19,17 +21,12 @@ ax1, ax2, ax3= 0, 1, 2
 pos = [0 for _ in range(n)]
 PW = 3
 
-def build(start):
-    cube = []
-    board = start
-    while len(cube) < 60:
-        cube.append(board)
-        board = life2d(board)
-    return cube
-        
-board = ndimensional(2, d, filler=0)
-randomize2d(board)
-cube = build(board)
+cubes.add_cube("clear", 2, (d, d), 0)
+cubes.add_cube("randomized", 2, (d, d), 0)
+randomize2d(cubes.get_cube("randomized"))
+cubes.add_cube("life", 2, (d, d), 0)
+cubes.build_cube("life", "randomized", 60, life2d)
+
 
 WIDTH, HEIGHT = 1400, 1000
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -38,19 +35,19 @@ CLOCK = pygame.time.Clock()
 
 order = ["x", "y", "z", "a", "b", "c", "d", "e", "f", "g"]
 mpos = (0, 0)
-add_frame("split", (WIDTH//2, 0), (WIDTH//2, HEIGHT), PW, cube, "list", tuple(pos), ax1, ax2, ax3)
-add_frame("show", (0, 0), (WIDTH//2, HEIGHT), PW*2, cube, "animation", tuple(pos), ax1, ax2, ax3)
+add_frame("split", (WIDTH//2, 0), (WIDTH//2, HEIGHT), PW, "life", "list", tuple(pos), ax1, ax2, ax3)
+add_frame("show", (0, 0), (WIDTH//2, HEIGHT), PW*2, "life", "animation", tuple(pos), ax1, ax2, ax3)
 while True:
     name = get_frame_at(mpos)
     if name is not None:
         data = get_frame_data(name)
         PW = data["pixelwidth"]
-        ax1, ax2, ax3 = data["axis1"], data["axis2"], data["axis3"]
+        ax1, ax2, ax3 = data["axis1"], data["axis2"], data["index"]
         pos = list(data["viewpos"])
     
     mods = pygame.key.get_mods()
     change = False
-    cubechange = False
+    bchange = False
     gif=False
     for e in pygame.event.get():
         if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE:
@@ -84,31 +81,30 @@ while True:
             if e.key == K_MINUS:
                 PW = max(1, PW - 1)
             if e.key == K_r:
-                board = ndimensional(2, d, filler=0)
-                randomize2d(board)
-                cube = build(board)
-                cubechange = True
-
+                cubes.add_cube("randomized", 2, (d, d), 0)
+                randomize2d(cubes.get_cube("randomized"))
+                cubes.build_cube("life", "randomized", 60, life2d)
+                bchange = True
+                
             if e.key == K_c:
-                cube = build(ndimensional(2, d, filler=0))
-                cubechange = True
-
+                cubes.build_cube("life", "clear", 60, life2d)
+                bchange = True
+                
             if e.key == K_RETURN:
-                cube = build(input_board(SCREEN, (32, 32), d, d, startfrom=cube[0]))
-                cubechange = True
-
+                cube = input_board(SCREEN, (32, 32), (d, d), style='bool', startfrom=cubes.get_cube("life")[0])
+                cubes.add_pre_built("user", (d, d), cube)
+                cubes.build_cube("life", "user", 60, life2d)
+                bchange = True
             change = True
                 
         elif e.type == MOUSEMOTION:
             mpos = e.pos
 
-    if change:
+    if bchange:
+        update_all()
+    elif change:
         if name is not None:
-            update_frame(name, cube, PW, tuple(pos), None, None, ax1, ax2, ax3)
-
-    if cubechange:
-        update_frame("split", cube)
-        update_frame("show", cube)
+            update_frame(name, None, PW, tuple(pos), None, None, ax1, ax2, ax3)
 
     if gif and name is not None:
         export_to_gif(name)

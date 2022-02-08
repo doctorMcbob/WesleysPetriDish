@@ -9,8 +9,6 @@ from pygame.locals import *
 from pathlib import Path
 from datetime import datetime
 
-from utils import expect_input
-
 ROOT_PATH = Path('.')
 PATH_TO_REPLAY = ROOT_PATH / ("gifs/" if "-o" not in sys.argv else "gifs/" + sys.argv[sys.argv.index("-o") + 1])
 PATH_TO_DUMP = ROOT_PATH / ("gifs/dump")

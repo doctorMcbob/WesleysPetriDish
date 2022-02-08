@@ -57,38 +57,3 @@ def screenshot(surf, name=None):
     print(s)
     pygame.image.save(surf, s)
 
-def input_board(dest, position, width, height, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
-    """style bool is a toggle 0/1, style int requires syntax int:9 for upper bound of 9"""
-    board = startfrom or ndimensional(2, diameter, filler=0)
-    while True:
-        cb(args)
-        dest.blit(drawn_view(board, pixelwidth=pixelwidth), position)
-        pygame.display.update()
-        pos = 0, 0
-        for e in pygame.event.get():
-            if e.type == QUIT: sys.exit()
-            if e.type == KEYDOWN:
-                if e.key == K_ESCAPE: sys.exit()
-                if e.key == K_LEFT: pos = pos[0] - 1, pos[1]
-                if e.key == K_UP: pos = pos[0], pos[1] - 1
-                if e.key == K_RIGHT: pos = pos[0] + 1, pos[1]
-                if e.key == K_DOWN: pos = pos[0], pos[1] + 1
-                if e.key == K_SPACE:
-                    if style=='bool': setAt(board, pos, int(not getAt(board, pos)))
-                    if style.startswith('int'): setAt(board, pos, (getAt(board, pos) + 1) % int(style.split(":")[-1]))
-                if e.key == K_RETURN:
-                    return board
-            if e.type == MOUSEMOTION:
-                x, y = position
-                px, py = e.pos
-                if x > px or y > py or px > x+width*pixelwidth or py > y+height*pixelwidth:
-                    continue
-                pos = (px-x) // pixelwidth, (py-y) // pixelwidth
-            if e.type == MOUSEBUTTONDOWN:
-                x, y = position
-                px, py = e.pos
-                if not (x < px < x+width*pixelwidth and y < py < y+height*pixelwidth):
-                    continue
-                pos = (py-y) // pixelwidth, (px-x) // pixelwidth
-                if style=='bool': setAt(board, pos, int(not getAt(board, pos)))
-                if style.startswith('int'): setAt(board, pos, (getAt(board, pos) + 1) % int(style.split(":")[-1]))

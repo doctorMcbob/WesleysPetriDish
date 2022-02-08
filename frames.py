@@ -4,21 +4,15 @@ from pygame.locals import *
 
 from display import get_view, drawn_view
 import printer
+import cubes
 
 frames = {}
 
 order = ["x", "y", "z", "a", "b", "c", "d", "e", "f", "g"]
+styles = ["animation", "list"]
 
-def add_frame(name, position, dimensions, pixelwidth, cube, style, viewpos, axis1, axis2, axis3, padding=4):
-    """
-    name - string identifier
-    position - where on screen
-    pixelwidth - width of each pixel
-    cube - for refrence
-    style - options:
-       "animation",
-       "list:w,h"
-    """
+def add_frame(name, position, dimensions, pixelwidth,
+              cube, style, viewpos, axis1, axis2, index, padding=4):
     frames[name] = {
         "cube": cube,
         "views": [],
@@ -27,7 +21,7 @@ def add_frame(name, position, dimensions, pixelwidth, cube, style, viewpos, axis
         "viewpos": viewpos,
         "axis1": axis1,
         "axis2": axis2,
-        "axis3": axis3,
+        "index": index,
         "padding": padding,
         "style": style,
         "pixelwidth": pixelwidth,
@@ -38,7 +32,7 @@ def add_frame(name, position, dimensions, pixelwidth, cube, style, viewpos, axis
         
 def draw_frame(dest, name, font, box=False):
     frame = frames[name]
-    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["axis3"]
+    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
     width, height = frame["dimensions"]
     x, y = frame["position"]
     if box:
@@ -50,7 +44,7 @@ def draw_frame(dest, name, font, box=False):
     dest.blit(font.render("{}".format(frame["viewpos"]), 0, (0, 0, 0)), (x+64, y))
     dest.blit(font.render("axis1: {}".format(order[frame["axis1"]]), 0, (0, 0, 0)), (x+128, y + 16))
     dest.blit(font.render("axis2: {}".format(order[frame["axis2"]]), 0, (0, 0, 0)), (x+256, y + 16))
-    dest.blit(font.render("over : {}".format(order[frame["axis3"]]), 0, (0, 0, 0)), (x+384, y + 16))
+    dest.blit(font.render("index: {}".format(order[frame["index"]]), 0, (0, 0, 0)), (x+384, y + 16))
     y += 32
         
     if frame["style"] == "list":
@@ -70,23 +64,28 @@ def draw_frame(dest, name, font, box=False):
         frame["frame"] += 1
         drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
         dest.blit(drawn, (x, y))
-            
+
+def update_all():
+    for name in frames:
+        update_frame(name)
+
 def update_frame(name,
                  cube=None, pixelwidth=None,
                  viewpos=None, position=None, dimensions=None,
-                 axis1=None, axis2=None, axis3=None):
+                 axis1=None, axis2=None, index=None):
     frame = frames[name]
     frame["cube"] = cube if cube is not None else frame["cube"]
     frame["dimensions"] = dimensions if dimensions is not None else frame["dimensions"]
     frame["viewpos"] = viewpos if viewpos is not None else frame["viewpos"]
     frame["axis1"] = axis1 if axis1 is not None else frame["axis1"]
     frame["axis2"] = axis2 if axis2 is not None else frame["axis2"]
-    frame["axis3"] = axis3 if axis3 is not None else frame["axis3"]
-    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["axis3"]
+    frame["index"] = index if index is not None else frame["index"]
+    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
     frame["pixelwidth"] = pixelwidth if pixelwidth is not None else frame["pixelwidth"]
     i = len(frame["viewpos"]) - 1
+    cube = cubes.get_cube(frame["cube"])
     dimensions = []
-    head = frame["cube"]
+    head = cube
     while i >= 0:
         dimensions.append(len(head))
         head = head[0]
@@ -96,7 +95,7 @@ def update_frame(name,
     frame["views"] = []
     for i in range(width):
         viewpos = tuple([v + (i * (_i == ax3)) for _i, v in enumerate(frame["viewpos"])])
-        frame["views"].append(get_view(frame["cube"], viewpos, ax1, ax2))
+        frame["views"].append(get_view(cube, viewpos, ax1, ax2))
 
 def get_frame_at(pos):
     for name in frames:
@@ -118,3 +117,4 @@ def export_to_gif(name):
     printer.make_gif()
     printer.clear_em()
     
+
