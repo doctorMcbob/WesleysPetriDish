@@ -12,13 +12,13 @@ order = ["x", "y", "z", "a", "b", "c", "d", "e", "f", "g"]
 styles = ["animation", "list"]
 
 def add_frame(name, position, dimensions, pixelwidth,
-              cube, style, viewpos, axis1, axis2, index, padding=4):
+              cube, style, axis1, axis2, index, padding=4):
     frames[name] = {
         "cube": cube,
         "views": [],
         "position": position,
         "dimensions": dimensions,
-        "viewpos": viewpos,
+        "viewpos": tuple(0 for _ in range(len(cubes.get_cube_dimensions(cube)))),
         "axis1": axis1,
         "axis2": axis2,
         "index": index,
@@ -45,7 +45,7 @@ def draw_frame(dest, name, font, box=False):
     dest.blit(font.render("axis1: {}".format(order[frame["axis1"]]), 0, (0, 0, 0)), (x+128, y + 16))
     dest.blit(font.render("axis2: {}".format(order[frame["axis2"]]), 0, (0, 0, 0)), (x+256, y + 16))
     dest.blit(font.render("index: {}".format(order[frame["index"]]), 0, (0, 0, 0)), (x+384, y + 16))
-    y += 32
+    y += 64
         
     if frame["style"] == "list":
         for i, view in enumerate(frame["views"]):
@@ -69,6 +69,9 @@ def update_all():
     for name in frames:
         update_frame(name)
 
+def get_frame_names():
+    return list(frames.keys())
+
 def update_frame(name,
                  cube=None, pixelwidth=None,
                  viewpos=None, position=None, dimensions=None,
@@ -82,6 +85,7 @@ def update_frame(name,
     frame["index"] = index if index is not None else frame["index"]
     ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
     frame["pixelwidth"] = pixelwidth if pixelwidth is not None else frame["pixelwidth"]
+
     i = len(frame["viewpos"]) - 1
     cube = cubes.get_cube(frame["cube"])
     dimensions = []
@@ -112,7 +116,8 @@ def get_frame_data(name):
 def export_to_gif(name):
     frame = frames[name]
     for view in frame["views"]:
-        printer.save_surface(drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)))
+        printer.save_surface(
+            drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)))
     printer.save_em()
     printer.make_gif()
     printer.clear_em()

@@ -1,5 +1,5 @@
 import pygame
-from pygame import Rect
+from pygame import Rect, Surface
 from pygame.locals import *
 
 import sys
@@ -8,6 +8,13 @@ from multiarray import ndimensional
 from utils import getAt, setAt
 from display import drawn_view
 import frames
+import cubes
+
+
+NUMBERS_ONLY = {
+    K_0: "0", K_1: "1", K_2: "2", K_3: "3", K_4: "4",
+    K_5: "5", K_6: "6", K_7: "7", K_8: "8", K_9: "9",
+}
 
 ALPHABET_KEY_MAP = {
     K_a: "a", K_b: "b", K_c: "c", K_d: "d", K_e: "e",
@@ -51,8 +58,31 @@ def expect_input(expectlist=[], args=None, cb=lambda *args:None):
                 if expectlist:
                     if e.key in expectlist: return e.key
                 else: return e.key
+                
+def get_text_input(dest, font, pos, numeric=False):
+    string = ''
+    KEY_MAP = NUMBERS_ONLY if numeric else ALPHABET_KEY_MAP
+    while True:
+        surf = Surface((256, 32))
+        surf.fill((230, 230, 230))
+        surf.blit(font.render(string, 0, (0, 0, 0)), (0, 0))
+        dest.blit(surf, pos)
+        pygame.display.update()
 
-def select_from_list(dest, position, font, l, args=None, cb=None):
+        inp = expect_input()
+        if inp == K_ESCAPE: return None
+        if inp == K_BACKSPACE: string = string[:-1]
+        if inp == K_RETURN: return int(string) if numeric else string 
+        
+        if pygame.key.get_mods() & KMOD_SHIFT and not numeric:
+            if inp in ALPHABET_SHIFT_MAP:
+                string = string + ALPHABET_SHIFT_MAP[inp]
+            elif inp in KEY_MAP:
+                string = string + KEY_MAP[inp].upper()
+        elif inp in ALPHABET_KEY_MAP:
+            string = string + KEY_MAP[inp]
+
+def select_from_list(dest, position, font, l, args=None, cb=lambda *args: None):
     idx = 0
     if not l: return None
     while True:
@@ -62,33 +92,39 @@ def select_from_list(dest, position, font, l, args=None, cb=None):
         for i, text in enumerate(l):
             col = (0, 0, 0) if i != idx else (160, 110, 190)
             surf.blit(font.render(str(text), 0, col), (0, i*32))
-        dest.blit(surf, pos)
+        dest.blit(surf, position)
         inp = expect_input()
 
         if inp == K_UP: idx -= 1
         if inp == K_DOWN: idx += 1
-        if inp in [K_RETURN, K_SPACE]: return list[idx]
-        if inp in [K_ESCAPE, K_BACKSPACE] or not list: return None
-        idx %= len(list)
+        if inp in [K_RETURN, K_SPACE]: return l[idx]
+        if inp in [K_ESCAPE, K_BACKSPACE] or not l: return None
+        idx %= len(l)
     
 def input_rect(dest, font=None, snap=16, args=None, cb=lambda *args:None):
     if font is not None: dest.blit(font.render("CLICK TWICE FOR RECT", 0, (0, 0, 0)), (0, 0))
     def draw_helper(args):
         cb(args)
         mpos = pygame.mouse.get_pos()
-        dest.blit(font.render("{}".format(((mpos[0] // snap)*snap, (mpos[1] // snap)*snap)), 0, (0, 0, 0)), (0, 0))
+        dest.blit(
+            font.render(
+                "{},{}".format((mpos[0] // snap)*snap, (mpos[1] // snap)*snap),
+                0, (0, 0, 0)),
+            (0, 0))
     pos, btn = expect_click(args, draw_helper)
     if not pos: return None, None
+    pos = (pos[0] // snap)*snap, (pos[1] // snap)*snap
     def draw_helper2(args):
         draw_helper(args)
-        pos2 = pygame.mouse.get()
+        pos2 = pygame.mouse.get_pos()
         x1 = min(pos[0], pos2[0])
         x2 = max(pos[0], pos2[0])
         y1 = min(pos[1], pos2[1])
         y2 = max(pos[1], pos2[1])
-        pygame.draw.rect(dest, (0, 150, 0), Rect((x1, y1), ((x2-x1), (y2-y1))))
+        pygame.draw.rect(dest, (0, 150, 0), Rect((x1, y1), ((x2-x1), (y2-y1))), width=2)
     pos2, btn2 =  expect_click(args, draw_helper2)
     if not pos2: return None, None
+    pos2 = (pos2[0] // snap)*snap, (pos2[1] // snap)*snap
     x1 = min(pos[0], pos2[0])
     x2 = max(pos[0], pos2[0])
     y1 = min(pos[1], pos2[1])
@@ -96,14 +132,45 @@ def input_rect(dest, font=None, snap=16, args=None, cb=lambda *args:None):
     return (x1, y1), ((x2 - x1), (y2 - y1))
     
 def input_frame(dest, font, args=None, cb=lambda *args: None):
-    pos, dim = input_rect(dest, font, args, cb)
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    cb(args)
+    if name is None: return None
+    pos, dim = input_rect(dest, font, args=args, cb=cb)
+    cb(args)
     if pos is None: return None
     dest.blit(font.render("Style:", 0, (0, 0, 0)), (0, 0))
+    cb(args)
     style = select_from_list(dest, (64, 32), font, frames.styles)
     if style is None: return None
+    cb(args)
     dest.blit(font.render("Cube:", 0, (0, 0, 0)), (0, 0))
-    cube = select_from_list(des, (64, 32), font, cubes.get_cube_names())
+    cube = select_from_list(dest, (64, 32), font, cubes.get_cube_names())
+    cb(args)
     if cube is None: return None
+    dimensions = cubes.get_cube_dimensions(cube)
+    cb(args)
+    dest.blit(font.render("Axis 1:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    cb(args)
+    if letter is None: return None
+    ax1 = frames.order.index(letter)
+    cb(args)
+    dest.blit(font.render("Axis 2:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    cb(args)
+    if letter is None: return None
+    ax2 = frames.order.index(letter)
+    cb(args)
+    dest.blit(font.render("Index:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    cb(args)
+    if letter is None: return None
+    idx = frames.order.index(letter)
+
+    frames.add_frame(name, pos, dim, 4, cube, style, ax1, ax2, idx)
+    
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
     """style bool is a toggle 0/1, style int requires syntax int:9 for upper bound of 9"""
@@ -141,3 +208,23 @@ def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=1
                 pos = (py-y) // pixelwidth, (px-x) // pixelwidth
                 if style=='bool': setAt(board, pos, int(not getAt(board, pos)))
                 if style.startswith('int'): setAt(board, pos, (getAt(board, pos) + 1) % int(style.split(":")[-1]))
+
+
+def input_cube(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    if name is None: return None
+    cb(args)
+    dest.blit(font.render("Dimensions:", 0, (0, 0, 0)), (0, 0))
+    n = get_text_input(dest, font, (64, 0), True)
+    if n is None or n >= len(frames.order): return None
+    dimensions = []
+    for i in range(n):
+        cb(args)
+        dest.blit(font.render(frames.order[i], 0, (0, 0, 0)), (0, 0))
+        d = get_text_input(dest, font, (64, 0), True)
+        if d is None: return None
+        dimensions.append(d)
+    dimensions = tuple(dimensions)
+    cubes.add_cube(name, n, dimensions)
