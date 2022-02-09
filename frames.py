@@ -58,21 +58,19 @@ def draw_frame(dest, name, font, box=False):
         return 
     if frame["style"] == "list":
         for i, view in enumerate(frame["views"]):
-            drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
-            if x + drawn.get_width() + frame["padding"] > frame["position"][0] + width:
+            if x + view.get_width() + frame["padding"] > frame["position"][0] + width:
                 x = frame["position"][0]
                 if box: x += 8
-                y += drawn.get_height() + frame["padding"]
-            if y + drawn.get_height() + frame["padding"] > frame["position"][1] + height:
+                y += view.get_height() + frame["padding"]
+            if y + view.get_height() + frame["padding"] > frame["position"][1] + height:
                 return
-            dest.blit(drawn, (x, y))
-            x += drawn.get_width() + frame["padding"]
+            dest.blit(view, (x, y))
+            x += view.get_width() + frame["padding"]
 
     elif frame["style"] == "animation":
         view = frame["views"][frame["frame"] % len(frame["views"])]
         frame["frame"] += 1
-        drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
-        dest.blit(drawn, (x, y))
+        dest.blit(view, (x, y))
 
 def update_all():
     for name in frames:
@@ -108,7 +106,11 @@ def update_frame(name,
     frame["views"] = []
     for i in range(width):
         viewpos = tuple([v + (i * (_i == ax3)) for _i, v in enumerate(frame["viewpos"])])
-        frame["views"].append(get_view(cube, viewpos, ax1, ax2))
+        frame["views"].append(
+            drawn_view(
+                get_view(cube, viewpos, ax1, ax2),
+                pixelwidth=frame["pixelwidth"],
+                off=(110, 110, 180), on=(255, 200, 200)))
 
 def get_frame_at(pos):
     for name in frames:

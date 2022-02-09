@@ -105,7 +105,8 @@ def draw(dest):
     for frame in frames.get_frame_names():
         col = (0, 0, 0) if frame != name else (0, 200, 0)
         frames.draw_frame(dest, frame, FONTS[FONT], col)
-
+    CLOCK.tick(15)
+        
 while __name__ == "__main__":
     draw(SCREEN)
     pygame.display.update()
