@@ -173,7 +173,6 @@ def input_frame(dest, font, args=None, cb=lambda *args: None):
     
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
-    """style bool is a toggle 0/1, style int requires syntax int:9 for upper bound of 9"""
     width, height = dim
     board = startfrom or ndimensional(2, dim, filler=0)
     while True:
