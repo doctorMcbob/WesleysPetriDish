@@ -228,3 +228,21 @@ def input_cube(dest, font, args=None, cb=lambda *args: None):
         dimensions.append(d)
     dimensions = tuple(dimensions)
     cubes.add_cube(name, n, dimensions)
+
+def input_plane(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    if name is None: return None
+    cb(args)
+    dest.blit(font.render("Width:", 0, (0, 0, 0)), (0, 0))
+    W = get_text_input(dest, font, (64, 0), True)
+    if W is None: return None
+    cb(args)
+    dest.blit(font.render("Height:", 0, (0, 0, 0)), (0, 0))
+    H = get_text_input(dest, font, (64, 0), True)
+    if H is None: return None
+    cb(args)
+    cube = input_board(dest, (64, 64), (W, H), args=args, cb=cb)
+    if cube is None: return None
+    cubes.add_pre_built(name, (W, H), cube)

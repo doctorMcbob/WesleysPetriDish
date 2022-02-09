@@ -35,9 +35,9 @@ def get_view(multiarray, position, axis1, axis2):
 
 def drawn_view(view, pixelwidth=32, off=(255, 255, 255), on=(0, 0, 0), bg=(120, 120, 120)):
     surf = Surface((len(view)*pixelwidth, len(view[0])*pixelwidth))
-    for x in range(len(view)):
-        for y in range(len(view[0])):
-            col = on if view[x][y] else off
+    for x, row in enumerate(view):
+        for y, slot in enumerate(row):
+            col = on if slot else off
             if view[x][y] is None: col = bg
             pygame.draw.rect(surf, col, Rect((x*pixelwidth, y*pixelwidth), (pixelwidth, pixelwidth)))
     return surf

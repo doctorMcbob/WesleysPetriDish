@@ -74,6 +74,8 @@ def process():
             if e.key == K_c:
                 inputs.input_cube(SCREEN, FONTS[FONT], SCREEN, draw)
 
+            if e.key == K_p:
+                inputs.input_plane(SCREEN, FONTS[FONT], SCREEN, draw)
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
 
