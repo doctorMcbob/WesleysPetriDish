@@ -127,8 +127,7 @@ def get_frame_data(name):
 def export_to_gif(name):
     frame = frames[name]
     for view in frame["views"]:
-        printer.save_surface(
-            drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)))
+        printer.save_surface(view)
     printer.save_em()
     printer.make_gif()
     printer.clear_em()
@@ -140,6 +139,7 @@ def save_frames_as(filename):
         with open(os.path.join(PATH_TO_FRAMES, "{}.frames".format(filename)), "w") as f:
             f.write(repr(saveme))
     except IOError as e:
+        print(e)
         return 
 
 def load_frames(filename):
@@ -148,6 +148,7 @@ def load_frames(filename):
         with open(os.path.join(PATH_TO_FRAMES, "{}".format(filename))) as f:
             loaded = eval(f.read())
     except IOError as e:
+        print(e)
         return
     cubenames = cubes.get_cube_names()
     for key in list(loaded.keys()):

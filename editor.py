@@ -9,7 +9,7 @@ import cubes
 import inputs
 from automata import RULES
 
-WIDTH, HEIGHT = 1200, 720
+WIDTH, HEIGHT = 1800, 1000
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 FONTS = {
@@ -99,6 +99,9 @@ def process():
         if view_changed and name is not None:
             frames.update_frame(name, pixelwidth=PW, axis1=AXIS1, axis2=AXIS2, index=INDEX)
 
+        if gif and name is not None:
+            frames.export_to_gif(name)
+            
 def draw(dest):
     dest.fill((100, 100, 100))
     name = frames.get_frame_at(MPOS) if MPOS is not None else None
