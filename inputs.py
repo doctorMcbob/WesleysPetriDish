@@ -9,7 +9,7 @@ from utils import getAt, setAt
 from display import drawn_view
 import frames
 import cubes
-
+import automata
 
 NUMBERS_ONLY = {
     K_0: "0", K_1: "1", K_2: "2", K_3: "3", K_4: "4",
@@ -245,3 +245,37 @@ def input_plane(dest, font, args=None, cb=lambda *args: None):
     cube = input_board(dest, (64, 64), (W, H), args=args, cb=cb)
     if cube is None: return None
     cubes.add_pre_built(name, (W, H), cube)
+
+def input_build(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    if name is None: return None
+    cb(args)
+    dest.blit(font.render("Seed:", 0, (0, 0, 0)), (0, 0))
+    seed = select_from_list(dest, (64, 32), font, cubes.get_cube_names())
+    if seed is None: return None
+    cb(args)
+    dest.blit(font.render("Length:", 0, (0, 0, 0)), (0, 0))
+    length = get_text_input(dest, font, (64, 0), True)
+    if length is None: return None
+    cb(args)
+    dest.blit(font.render("Rule:", 0, (0, 0, 0)), (0, 0))
+    rule = select_from_list(dest, (64, 32), font, automata.get_rule_names())
+    if rule is None: return None
+    cubes.build_cube(name, seed, length, automata.RULES[rule])
+
+def input_save_frame(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    if name is None: return None
+    frames.save_frames_as(name)
+
+def input_load_frame(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = select_from_list(dest, (64, 32), font, frames.get_context_names())
+    if name is None: return None
+    frames.load_frames(name)
+    

@@ -7,8 +7,9 @@ import sys
 import frames
 import cubes
 import inputs
+from automata import RULES
 
-WIDTH, HEIGHT = 1820, 1000
+WIDTH, HEIGHT = 1200, 720
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 FONTS = {
@@ -44,10 +45,20 @@ def process():
     
     gif = False
     for e in pygame.event.get():
-        if e.type == QUIT or e.type == KEYDOWN and e.key == K_ESCAPE:
+        if e.type == QUIT:
             sys.exit()
+
+        if e.type == KEYDOWN and mods & KMOD_CTRL:
+            if e.key == K_ESCAPE:
+                sys.exit()
+
+            if e.key == K_s:
+                inputs.input_save_frame(SCREEN, FONTS[FONT], SCREEN, draw)
+
+            if e.key == K_o:
+                inputs.input_load_frame(SCREEN, FONTS[FONT], SCREEN, draw)
             
-        if e.type == KEYDOWN and mods & KMOD_SHIFT:
+        elif e.type == KEYDOWN and mods & KMOD_SHIFT:
             if e.key in [K_RIGHT, K_LEFT]:
                 if AXIS1 is not None and AXIS2 is not None:
                     AXIS1, AXIS2 = AXIS2, AXIS1
@@ -76,6 +87,10 @@ def process():
 
             if e.key == K_p:
                 inputs.input_plane(SCREEN, FONTS[FONT], SCREEN, draw)
+
+            if e.key == K_b:
+                inputs.input_build(SCREEN, FONTS[FONT], SCREEN, draw)
+
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
 

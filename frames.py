@@ -1,10 +1,17 @@
+import os
+import sys
 import pygame
 from pygame import Rect
 from pygame.locals import *
-
+from pathlib import Path
+from copy import deepcopy
 from display import get_view, drawn_view
 import printer
 import cubes
+
+ROOT_PATH = Path('.')
+PATH_TO_FRAMES = ROOT_PATH / "save/"
+if not os.path.isdir(PATH_TO_FRAMES): os.mkdir(PATH_TO_FRAMES)
 
 frames = {}
 
@@ -46,7 +53,9 @@ def draw_frame(dest, name, font, box=False):
     dest.blit(font.render("axis2: {}".format(order[frame["axis2"]]), 0, (0, 0, 0)), (x+256, y + 16))
     dest.blit(font.render("index: {}".format(order[frame["index"]]), 0, (0, 0, 0)), (x+384, y + 16))
     y += 64
-        
+
+    if frame["cube"] is None:
+        return 
     if frame["style"] == "list":
         for i, view in enumerate(frame["views"]):
             drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
@@ -55,7 +64,7 @@ def draw_frame(dest, name, font, box=False):
                 if box: x += 8
                 y += drawn.get_height() + frame["padding"]
             if y + drawn.get_height() + frame["padding"] > frame["position"][1] + height:
-                break
+                return
             dest.blit(drawn, (x, y))
             x += drawn.get_width() + frame["padding"]
 
@@ -121,5 +130,37 @@ def export_to_gif(name):
     printer.save_em()
     printer.make_gif()
     printer.clear_em()
-    
 
+def save_frames_as(filename):
+    try:
+        saveme = deepcopy(frames)
+        saveme["views"] = []
+        with open(os.path.join(PATH_TO_FRAMES, "{}.frames".format(filename)), "w") as f:
+            f.write(repr(saveme))
+    except IOError as e:
+        return 
+
+def load_frames(filename):
+    global frames
+    try:
+        with open(os.path.join(PATH_TO_FRAMES, "{}".format(filename))) as f:
+            loaded = eval(f.read())
+    except IOError as e:
+        return
+    cubenames = cubes.get_cube_names()
+    for key in list(loaded.keys()):
+        frame = loaded[key]
+        if type(frame) is not dict:
+            continue
+        if frame["cube"] not in cubenames:
+            loaded["cube"] = None
+    
+def get_context_names():
+    try:
+        framenames = []
+        for _, _, filenames in os.walk(PATH_TO_FRAMES):
+            for filename in filenames:
+                framenames.append(filename)
+        return framenames
+    except IOError:
+        return []

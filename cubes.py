@@ -16,7 +16,7 @@ def build_cube(name, seed, length, buildfunction):
     board = cubes[seed]
     while len(cube) < length:
         cube.append(board)
-        board = buildfunction(board, dimensions[name])
+        board = buildfunction(board, dimensions[seed])
     cubes[name] = cube
     dimensions[name] = tuple(
         [n for n in dimensions[seed]] + [len(cube)]
