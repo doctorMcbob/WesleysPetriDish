@@ -97,17 +97,18 @@ def process():
         if board_changed:
             frames.update_all()
         if view_changed and name is not None:
-            frames.update_frame(name, pixelwidth=PW, axis1=AXIS1, axis2=AXIS2, index=INDEX)
+            frames.update_frame(SCREEN, FONTS[FONT], name, pixelwidth=PW, axis1=AXIS1, axis2=AXIS2, index=INDEX)
 
         if gif and name is not None:
             frames.export_to_gif(name)
-            
+
 def draw(dest):
     dest.fill((100, 100, 100))
     name = frames.get_frame_at(MPOS) if MPOS is not None else None
     for frame in frames.get_frame_names():
         col = (0, 0, 0) if frame != name else (0, 200, 0)
-        frames.draw_frame(dest, frame, FONTS[FONT], col)
+        frame_data = frames.get_frame_data(frame)
+        frames.draw_frame(dest, frame, FONTS[FONT], col, redraw=frame_data["style"] == "animation")
     CLOCK.tick(15)
         
 while __name__ == "__main__":

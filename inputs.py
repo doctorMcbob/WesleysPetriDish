@@ -73,13 +73,13 @@ def get_text_input(dest, font, pos, numeric=False):
         if inp == K_ESCAPE: return None
         if inp == K_BACKSPACE: string = string[:-1]
         if inp == K_RETURN: return int(string) if numeric else string 
-        
+
         if pygame.key.get_mods() & KMOD_SHIFT and not numeric:
             if inp in ALPHABET_SHIFT_MAP:
                 string = string + ALPHABET_SHIFT_MAP[inp]
             elif inp in KEY_MAP:
                 string = string + KEY_MAP[inp].upper()
-        elif inp in ALPHABET_KEY_MAP:
+        elif inp in KEY_MAP:
             string = string + KEY_MAP[inp]
 
 def select_from_list(dest, position, font, l, args=None, cb=lambda *args: None):
@@ -169,7 +169,7 @@ def input_frame(dest, font, args=None, cb=lambda *args: None):
     if letter is None: return None
     idx = frames.order.index(letter)
 
-    frames.add_frame(name, pos, dim, 4, cube, style, ax1, ax2, idx)
+    frames.add_frame(dest, font, name, pos, dim, 4, cube, style, ax1, ax2, idx)
     
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):

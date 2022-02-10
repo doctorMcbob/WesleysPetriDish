@@ -1,7 +1,7 @@
 import os
 import sys
 import pygame
-from pygame import Rect
+from pygame import Rect, Surface
 from pygame.locals import *
 from pathlib import Path
 from copy import deepcopy
@@ -18,7 +18,7 @@ frames = {}
 order = ["x", "y", "z", "a", "b", "c", "d", "e", "f", "g"]
 styles = ["animation", "list"]
 
-def add_frame(name, position, dimensions, pixelwidth,
+def add_frame(dest, font, name, position, dimensions, pixelwidth,
               cube, style, axis1, axis2, index, padding=4):
     frames[name] = {
         "cube": cube,
@@ -31,46 +31,58 @@ def add_frame(name, position, dimensions, pixelwidth,
         "index": index,
         "padding": padding,
         "style": style,
+        "surf": Surface(dimensions),
         "pixelwidth": pixelwidth,
     }
     if style == "animation":
         frames[name]["frame"] = 0
-    update_frame(name)
+    update_frame(dest, font, name)
         
-def draw_frame(dest, name, font, box=False):
+def draw_frame(dest, name, font, box=False, redraw=False):
     frame = frames[name]
-    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
+    surf = frame["surf"]
+    x, y = 0, 0
     width, height = frame["dimensions"]
-    x, y = frame["position"]
     if box:
-        pygame.draw.rect(dest, box, Rect((x, y), (width, height)), width=2)
-        x+=8
-        y+=8
-    dest.blit(font.render(name, 0, (0, 0, 0)), (x, y))
-    dest.blit(font.render(frame["style"], 0, (0, 0, 0)), (x, y + 16))
-    dest.blit(font.render("{}".format(frame["viewpos"]), 0, (0, 0, 0)), (x+64, y))
-    dest.blit(font.render("axis1: {}".format(order[frame["axis1"]]), 0, (0, 0, 0)), (x+128, y + 16))
-    dest.blit(font.render("axis2: {}".format(order[frame["axis2"]]), 0, (0, 0, 0)), (x+256, y + 16))
-    dest.blit(font.render("index: {}".format(order[frame["index"]]), 0, (0, 0, 0)), (x+384, y + 16))
-    y += 64
+        pygame.draw.rect(surf, box, Rect((x, y), (width-1, height-1)), width=2)
+    if redraw:
+        surf.fill((1, 1, 1))
+        if box:
+            pygame.draw.rect(surf, box, Rect((x, y), (width-1, height-1)), width=2)
 
-    if frame["cube"] is None:
-        return 
-    if frame["style"] == "list":
-        for i, view in enumerate(frame["views"]):
-            if x + view.get_width() + frame["padding"] > frame["position"][0] + width:
-                x = frame["position"][0]
-                if box: x += 8
-                y += view.get_height() + frame["padding"]
-            if y + view.get_height() + frame["padding"] > frame["position"][1] + height:
-                return
-            dest.blit(view, (x, y))
-            x += view.get_width() + frame["padding"]
+        ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
+        x += 8
+        y += 8
+        surf.blit(font.render(name, 0, (0, 0, 0)), (x, y))
+        surf.blit(font.render(frame["style"], 0, (0, 0, 0)), (x, y + 16))
+        surf.blit(font.render("{}".format(frame["viewpos"]), 0, (0, 0, 0)), (x+64, y))
+        surf.blit(font.render("axis1: {}".format(order[frame["axis1"]]), 0, (0, 0, 0)), (x+128, y + 16))
+        surf.blit(font.render("axis2: {}".format(order[frame["axis2"]]), 0, (0, 0, 0)), (x+256, y + 16))
+        surf.blit(font.render("index: {}".format(order[frame["index"]]), 0, (0, 0, 0)), (x+384, y + 16))
+        y += 64
 
-    elif frame["style"] == "animation":
-        view = frame["views"][frame["frame"] % len(frame["views"])]
-        frame["frame"] += 1
-        dest.blit(view, (x, y))
+        if frame["cube"] is None:
+            pass
+        elif frame["style"] == "list":
+            for i, view in enumerate(frame["views"]):
+                drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
+                if x + drawn.get_width() + frame["padding"] > frame["position"][0] + width:
+                    x = frame["position"][0]
+                    if box: x += 8
+                    y += drawn.get_height() + frame["padding"]
+                if y + drawn.get_height() + frame["padding"] > frame["position"][1] + height:
+
+                    break
+                surf.blit(drawn, (x, y))
+                x += drawn.get_width() + frame["padding"]
+
+        elif frame["style"] == "animation":
+            view = frame["views"][frame["frame"] % len(frame["views"])]
+            frame["frame"] += 1
+            surf.blit(drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)), (x, y))
+        surf.set_colorkey((1, 1, 1))
+
+    dest.blit(surf, frame["position"])
 
 def update_all():
     for name in frames:
@@ -79,7 +91,7 @@ def update_all():
 def get_frame_names():
     return list(frames.keys())
 
-def update_frame(name,
+def update_frame(dest, font, name, 
                  cube=None, pixelwidth=None,
                  viewpos=None, position=None, dimensions=None,
                  axis1=None, axis2=None, index=None):
@@ -106,11 +118,8 @@ def update_frame(name,
     frame["views"] = []
     for i in range(width):
         viewpos = tuple([v + (i * (_i == ax3)) for _i, v in enumerate(frame["viewpos"])])
-        frame["views"].append(
-            drawn_view(
-                get_view(cube, viewpos, ax1, ax2),
-                pixelwidth=frame["pixelwidth"],
-                off=(110, 110, 180), on=(255, 200, 200)))
+        frame["views"].append(get_view(cube, viewpos, ax1, ax2))
+        draw_frame(dest, name, font, redraw=True)
 
 def get_frame_at(pos):
     for name in frames:
@@ -127,7 +136,7 @@ def get_frame_data(name):
 def export_to_gif(name):
     frame = frames[name]
     for view in frame["views"]:
-        printer.save_surface(view)
+        printer.save_surface(drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)))
     printer.save_em()
     printer.make_gif()
     printer.clear_em()
@@ -135,7 +144,9 @@ def export_to_gif(name):
 def save_frames_as(filename):
     try:
         saveme = deepcopy(frames)
-        saveme["views"] = []
+        for key in saveme:
+            frame = frames[key]
+            frame["views"] = []
         with open(os.path.join(PATH_TO_FRAMES, "{}.frames".format(filename)), "w") as f:
             f.write(repr(saveme))
     except IOError as e:
@@ -156,7 +167,12 @@ def load_frames(filename):
         if type(frame) is not dict:
             continue
         if frame["cube"] not in cubenames:
-            loaded["cube"] = None
+            for key in loaded:
+                frame = loaded[key]
+                frame["views"] = []
+                frame["cube"] = None
+    
+    frames = loaded
     
 def get_context_names():
     try:
