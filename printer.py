@@ -43,6 +43,7 @@ def make_gif(filename=None, fps=15):
         file_path = os.path.join(ROOT_PATH / PATH_TO_DUMP, file_name)
         images.append(imageio.imread(file_path))
     imageio.mimsave(os.path.join(ROOT_PATH / PATH_TO_REPLAY, filename), images, fps=fps)
+    return str(os.path.join(ROOT_PATH / PATH_TO_REPLAY, filename))
 
 def clear_em():
     num_imgs = len(os.listdir(ROOT_PATH / PATH_TO_DUMP))

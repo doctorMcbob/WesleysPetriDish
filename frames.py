@@ -37,6 +37,7 @@ def add_frame(dest, font, name, position, dimensions, pixelwidth,
     if style == "animation":
         frames[name]["frame"] = 0
     update_frame(dest, font, name)
+    return "Added frame {}. style {}".format(name, style)
         
 def draw_frame(dest, name, font, box=False, redraw=False):
     frame = frames[name]
@@ -138,8 +139,9 @@ def export_to_gif(name):
     for view in frame["views"]:
         printer.save_surface(drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200)))
     printer.save_em()
-    printer.make_gif()
+    filename = printer.make_gif()
     printer.clear_em()
+    return "Wrote frame {} to gif as {}".format(name, filename)
 
 def save_frames_as(filename):
     try:
@@ -151,7 +153,8 @@ def save_frames_as(filename):
             f.write(repr(saveme))
     except IOError as e:
         print(e)
-        return 
+        return "Error saving frames"
+    return "Saved frames as {}".format(filename)
 
 def load_frames(filename):
     global frames
@@ -160,7 +163,7 @@ def load_frames(filename):
             loaded = eval(f.read())
     except IOError as e:
         print(e)
-        return
+        return "Error loading frames"
     cubenames = cubes.get_cube_names()
     for key in list(loaded.keys()):
         frame = loaded[key]
@@ -171,8 +174,8 @@ def load_frames(filename):
                 frame = loaded[key]
                 frame["views"] = []
                 frame["cube"] = None
-    
     frames = loaded
+    return "Loaded frames {}".format(filename)
     
 def get_context_names():
     try:

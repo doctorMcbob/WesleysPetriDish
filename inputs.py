@@ -169,7 +169,7 @@ def input_frame(dest, font, args=None, cb=lambda *args: None):
     if letter is None: return None
     idx = frames.order.index(letter)
 
-    frames.add_frame(dest, font, name, pos, dim, 4, cube, style, ax1, ax2, idx)
+    return frames.add_frame(dest, font, name, pos, dim, 4, cube, style, ax1, ax2, idx)
     
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
@@ -244,7 +244,7 @@ def input_plane(dest, font, args=None, cb=lambda *args: None):
     cb(args)
     cube = input_board(dest, (64, 64), (W, H), args=args, cb=cb)
     if cube is None: return None
-    cubes.add_pre_built(name, (W, H), cube)
+    return cubes.add_pre_built(name, (W, H), cube)
 
 def input_build(dest, font, args=None, cb=lambda *args: None):
     cb(args)
@@ -263,19 +263,19 @@ def input_build(dest, font, args=None, cb=lambda *args: None):
     dest.blit(font.render("Rule:", 0, (0, 0, 0)), (0, 0))
     rule = select_from_list(dest, (64, 32), font, automata.get_rule_names())
     if rule is None: return None
-    cubes.build_cube(name, seed, length, automata.RULES[rule])
+    return cubes.build_cube(name, seed, length, rule)
 
 def input_save_frame(dest, font, args=None, cb=lambda *args: None):
     cb(args)
     dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
     name = get_text_input(dest, font, (64, 0))
     if name is None: return None
-    frames.save_frames_as(name)
+    return frames.save_frames_as(name)
 
 def input_load_frame(dest, font, args=None, cb=lambda *args: None):
     cb(args)
     dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
     name = select_from_list(dest, (64, 32), font, frames.get_context_names())
     if name is None: return None
-    frames.load_frames(name)
+    return frames.load_frames(name)
     

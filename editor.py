@@ -1,4 +1,5 @@
 import pygame
+from pygame import Surface
 from pygame.locals import *
 pygame.init()
 
@@ -29,10 +30,34 @@ MPOS = (0, 0)
 RELATIVE_POSITION = None
 CUBE = None
 
+LOG = Surface((WIDTH, HEIGHT))
+LOG.fill((255, 255, 255))
+show_log = False
+def log(text):
+    global LOG
+    new = Surface(LOG.get_size())
+    new.fill((255, 255, 255))
+    new.blit(LOG, (0, 32))
+    new.blit(FONTS[FONT].render(text, 0, (0, 0, 0)), (0, 0))
+    LOG = new
+
+log("wesleyscoolsite.com")
+log("To exit, press CTRL+ESCAPE")
+log("  select a Frame with your mouse, and press SHIFT+ARROW KEY to shift your Axis.")
+log("  to view your Cube, build a Frame with [F]. You will choose 2 axis to graph against, and one axis to be your index value.")
+log("  Build a cube with a Rule with [B]. You will choose a Rule and a Cube to set as a seed.")
+log("  define a new cube with [C] or draw a new Plane with [P]")
+log("  Cubes of data are graphed with Frames")
+log("Core Concepts:")
+log("Welcome to Wesley's Petri Dish!")
+
 def process():
-    global MPOS, FONT, AXIS1, AXIS2, INDEX, CUBE, RELATIVE_POSITION, PW
+    global MPOS, FONT, AXIS1, AXIS2, INDEX, CUBE, RELATIVE_POSITION, PW, show_log
     name = frames.get_frame_at(MPOS)
 
+    show_log = MPOS[1] > SCREEN.get_height() - 32
+    if show_log: name = None
+    
     if name is not None:
         data = frames.get_frame_data(name)
         PW = data["pixelwidth"]
@@ -80,16 +105,16 @@ def process():
                 view_changed = True
 
             if e.key == K_f:
-                inputs.input_frame(SCREEN, FONTS[FONT], SCREEN, draw)
+                log(inputs.input_frame(SCREEN, FONTS[FONT], SCREEN, draw))
 
             if e.key == K_c:
-                inputs.input_cube(SCREEN, FONTS[FONT], SCREEN, draw)
+                log(inputs.input_cube(SCREEN, FONTS[FONT], SCREEN, draw))
 
             if e.key == K_p:
-                inputs.input_plane(SCREEN, FONTS[FONT], SCREEN, draw)
+                log(inputs.input_plane(SCREEN, FONTS[FONT], SCREEN, draw))
 
             if e.key == K_b:
-                inputs.input_build(SCREEN, FONTS[FONT], SCREEN, draw)
+                log(inputs.input_build(SCREEN, FONTS[FONT], SCREEN, draw))
 
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
@@ -100,7 +125,7 @@ def process():
             frames.update_frame(SCREEN, FONTS[FONT], name, pixelwidth=PW, axis1=AXIS1, axis2=AXIS2, index=INDEX)
 
         if gif and name is not None:
-            frames.export_to_gif(name)
+            log(frames.export_to_gif(name))
 
 def draw(dest):
     dest.fill((100, 100, 100))
@@ -109,6 +134,10 @@ def draw(dest):
         col = (0, 0, 0) if frame != name else (0, 200, 0)
         frame_data = frames.get_frame_data(frame)
         frames.draw_frame(dest, frame, FONTS[FONT], col, redraw=frame_data["style"] == "animation")
+    if not show_log:
+        dest.blit(LOG, (0, dest.get_height() - 32))
+    else:
+        dest.blit(LOG, (0, 0))
     CLOCK.tick(15)
         
 while __name__ == "__main__":
