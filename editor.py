@@ -35,6 +35,7 @@ LOG.fill((255, 255, 255))
 show_log = False
 def log(text):
     global LOG
+    if text is None: return
     new = Surface(LOG.get_size())
     new.fill((255, 255, 255))
     new.blit(LOG, (0, 32))
@@ -68,7 +69,6 @@ def process():
     board_changed = False
     view_changed = False
     
-    gif = False
     for e in pygame.event.get():
         if e.type == QUIT:
             sys.exit()
@@ -97,7 +97,9 @@ def process():
                 view_changed = True
                 
         elif e.type == KEYDOWN:
-            if e.key == K_COMMA: gif=True
+            if e.key == K_COMMA:
+                if name is not None:
+                    log(frames.export_to_gif(name))
 
             if e.key == K_EQUALS: PW += 1
             if e.key == K_MINUS: PW = max(1, PW - 1)
@@ -119,13 +121,10 @@ def process():
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
 
-        if board_changed:
-            frames.update_all()
-        if view_changed and name is not None:
-            frames.update_frame(SCREEN, FONTS[FONT], name, pixelwidth=PW, axis1=AXIS1, axis2=AXIS2, index=INDEX)
-
-        if gif and name is not None:
-            log(frames.export_to_gif(name))
+    if board_changed:
+        frames.update_all()
+    if view_changed and name is not None:
+        frames.update_frame(SCREEN, FONTS[FONT], name, pixelwidth=PW, axis1=AXIS1, axis2=AXIS2, index=INDEX)
 
 def draw(dest):
     dest.fill((100, 100, 100))
