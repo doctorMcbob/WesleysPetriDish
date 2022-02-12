@@ -67,12 +67,12 @@ def draw_frame(dest, name, font, box=False, redraw=False):
         elif frame["style"] == "list":
             for i, view in enumerate(frame["views"]):
                 drawn = drawn_view(view, pixelwidth=frame["pixelwidth"], off=(110, 110, 180), on=(255, 200, 200))
-                if x + drawn.get_width() + frame["padding"] > frame["position"][0] + width:
-                    x = frame["position"][0]
-                    if box: x += 8
+                if x + drawn.get_width() + frame["padding"] > width:
+                    x = 8
                     y += drawn.get_height() + frame["padding"]
-                if y + drawn.get_height() + frame["padding"] > frame["position"][1] + height:
-
+                
+                    
+                if y + drawn.get_height() + frame["padding"] > height:
                     break
                 surf.blit(drawn, (x, y))
                 x += drawn.get_width() + frame["padding"]
