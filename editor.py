@@ -118,6 +118,9 @@ def process():
             if e.key == K_b:
                 log(inputs.input_build(SCREEN, FONTS[FONT], SCREEN, draw))
 
+            if e.key == K_r:
+                log(inputs.input_generic_rule(SCREEN, FONTS[FONT], SCREEN, draw))
+                
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
 

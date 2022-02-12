@@ -279,3 +279,20 @@ def input_load_frame(dest, font, args=None, cb=lambda *args: None):
     if name is None: return None
     return frames.load_frames(name)
     
+def input_generic_rule(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    if name is None: return None
+    cb(args)
+    dest.blit(font.render("N dimension:", 0, (0, 0, 0)), (0, 0))
+    n = get_text_input(dest, font, (64, 0), True)
+    if n is None or n >= len(frames.order): return None
+    cb(args)
+    dest.blit(font.render("Inverted? Y/N", 0, (0, 0, 0)), (0, 0))
+    inverted = expect_input() == K_y
+    ruleset = set()
+
+    automata.RULE_SETS[name] = ruleset
+    automata.RULES[name] = automata.make_generic_ndimensional(name, n, ruleset, inverted)
+    return "Rule {} created with ruleset size {} inverted? {}".format(name, len(ruleset), inverted)
