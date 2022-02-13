@@ -32,7 +32,7 @@ def nbrs2d(x, y):
     yield x+1, y
     yield x+1, y+1
 
-def nbrsnd(pos, n):
+def nbrsnd(pos):
     positions = [[]]
     for v in pos:
         for idx in range(len(positions)):

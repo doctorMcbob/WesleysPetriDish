@@ -5,8 +5,8 @@ from pygame.locals import *
 import sys
 
 from multiarray import ndimensional
-from utils import getAt, setAt
-from display import drawn_view
+from utils import getAt, setAt, points_in_dimensions, nbrsnd
+from display import drawn_view, get_view
 import frames
 import cubes
 import automata
@@ -183,7 +183,7 @@ def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=1
         for e in pygame.event.get():
             if e.type == QUIT: sys.exit()
             if e.type == KEYDOWN:
-                if e.key == K_ESCAPE: sys.exit()
+                if e.key == K_ESCAPE: return None
                 if e.key == K_LEFT: pos = pos[0] - 1, pos[1]
                 if e.key == K_UP: pos = pos[0], pos[1] - 1
                 if e.key == K_RIGHT: pos = pos[0] + 1, pos[1]
@@ -293,6 +293,76 @@ def input_generic_rule(dest, font, args=None, cb=lambda *args: None):
     inverted = expect_input() == K_y
     ruleset = set()
 
+    rulesegment = input_rule_segment(dest, font, args=args, cb=cb, n=n)
+    while rulesegment is not None:
+        ruleset.add(rulesegment)
+        rulesegment = input_rule_segment(dest, font, args=args, cb=cb, n=n)
+    
     automata.RULE_SETS[name] = ruleset
     automata.RULES[name] = automata.make_generic_ndimensional(name, n, ruleset, inverted)
     return "Rule {} created with ruleset size {} inverted? {}".format(name, len(ruleset), inverted)
+
+def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
+    if n==1: return input_1d_rule(dest, font, args, cb)
+    board = ndimensional(n, tuple(3 for _ in range(n)), filler=0)
+    done = False
+    while not done:
+        cb(args)
+        points = points_in_dimensions(3 for n in range(2, n))
+        if not points: points.append([])
+        x, y = 16, 16
+        for point in points:
+            pos = [0, 0] + point
+            view = get_view(board, pos, 0, 1)
+            drawn = drawn_view(view, pixelwidth=16)
+            if x + drawn.get_width() > dest.get_width():
+                x = 16
+                y += drawn.get_height() + 32
+            if y + drawn.get_height() + 32 > dest.get_height():
+                break
+            dest.blit(font.render("{}".format(pos[2:]), 0, (0, 0, 0)), (x, y))
+            dest.blit(drawn, (x, y+32))
+            x += drawn.get_width() + 32
+        pygame.display.update()
+        for e in pygame.event.get():
+            if e.type == QUIT: sys.exit()
+            if e.type == KEYDOWN:
+                if e.key == K_ESCAPE: return None
+                if e.key == K_RETURN: done = True
+            if e.type == MOUSEBUTTONDOWN:
+                x, y = e.pos
+
+                for point in points:
+                    pass # TODO
+                
+    center = tuple(1 for _ in range(n))
+    return "".join([str(getAt(board, pos)) for pos in nbrsnd(center)])
+
+def input_1d_rule(dest, font, args=None, cb=lambda *args: None):
+    a, b, c = 0, 0, 0
+    done = False
+    cols = [(255, 255, 255), (0, 0, 0), (125, 125, 125)]
+    while not done:
+        cb(args)
+        pygame.draw.rect(dest, cols[a], Rect((16, 16), (32, 32)))
+        pygame.draw.rect(dest, cols[b], Rect((48, 16), (32, 32)))
+        pygame.draw.rect(dest, cols[c], Rect((80, 16), (32, 32)))
+        pygame.display.update()
+        for e in pygame.event.get():
+            if e.type == QUIT: sys.exit()
+            if e.type == KEYDOWN:
+                if e.key == K_ESCAPE: return None
+                if e.key == K_RETURN: done = True
+
+            if e.type == MOUSEBUTTONDOWN:
+                x, y = e.pos
+                if 16 > x or x > 112 or 16 > y or y > 48:
+                    continue
+                if 48 > x: a = (a + 1) % 3
+                elif 80 > x: b = (b + 1) % 3
+                else: c = (c + 1) % 3
+    a = "?" if a == 2 else a
+    b = "?" if b == 2 else b
+    c = "?" if c == 2 else c
+
+    return "{}{}{}".format(a, b, c)

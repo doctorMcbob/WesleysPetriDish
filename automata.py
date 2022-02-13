@@ -19,14 +19,14 @@ def make_generic_ndimensional(name, n, ruleset, inverted=False):
         new = ndimensional(n, dimensions, filler=0)
         for pos in points_in_dimensions(dimensions):
             serilized_state = ""
-            for nbr in nbrsnd(pos, n):
+            for nbr in nbrsnd(pos):
                 at = getAt(board, nbr)
                 if at is None: at=0
                 serilized_state += str(at)
             output = 1 if inverted else 0
             for rule_segment in RULE_SETS[name]:
-                if generic_check_against(state, rule_segment):
-                    output = 1 if inverted else 0
+                if generic_check_against(serilized_state, rule_segment):
+                    output = 0 if inverted else 1
                     break
             setAt(new, pos, output)
         return new
