@@ -309,6 +309,7 @@ def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
     while not done:
         cb(args)
         points = points_in_dimensions(3 for n in range(2, n))
+        corners = []
         if not points: points.append([])
         x, y = 16, 16
         for point in points:
@@ -322,6 +323,7 @@ def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
                 break
             dest.blit(font.render("{}".format(pos[2:]), 0, (0, 0, 0)), (x, y))
             dest.blit(drawn, (x, y+32))
+            corners.append((x, y+32))
             x += drawn.get_width() + 32
         pygame.display.update()
         for e in pygame.event.get():
@@ -332,11 +334,24 @@ def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
             if e.type == MOUSEBUTTONDOWN:
                 x, y = e.pos
 
-                for point in points:
-                    pass # TODO
-                
+                for i, point in enumerate(points):
+                    left, top = corners[i]
+
+                    if left > x or x > left+16*3 or top > y or y > top+16*3:
+                        continue
+                    
+                    pos = [(x - left) // 16, (y - top) // 16] + point
+                    value = getAt(board, pos)
+                    if value is None: continue
+                    setAt(board, pos, (value + 1)%3)
+
+    serialized = ""
     center = tuple(1 for _ in range(n))
-    return "".join([str(getAt(board, pos)) for pos in nbrsnd(center)])
+    for pos in nbrsnd(center):
+        at = getAt(board, pos)
+        if at == 2: at = "?"
+        serialized += "{}".format(at)
+    return serialized
 
 def input_1d_rule(dest, font, args=None, cb=lambda *args: None):
     a, b, c = 0, 0, 0

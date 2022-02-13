@@ -33,11 +33,14 @@ def get_view(multiarray, position, axis1, axis2):
             view[-1].append(getAt(multiarray, pos))
     return view
 
-def drawn_view(view, pixelwidth=32, off=(255, 255, 255), on=(0, 0, 0), bg=(120, 120, 120)):
+def drawn_view(view,
+               pixelwidth=32, off=(255, 255, 255),
+               on=(0, 0, 0), bg=(120, 120, 120), other=(120, 120, 120)):
     surf = Surface((len(view)*pixelwidth, len(view[0])*pixelwidth))
     for x, row in enumerate(view):
         for y, slot in enumerate(row):
-            col = on if slot else off
+            col = on if slot == 1 else other
+            if not slot: col = off
             if view[x][y] is None: col = bg
             pygame.draw.rect(surf, col, Rect((x*pixelwidth, y*pixelwidth), (pixelwidth, pixelwidth)))
     return surf
