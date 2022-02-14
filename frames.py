@@ -103,23 +103,18 @@ def update_frame(dest, font, name,
     frame["axis1"] = axis1 if axis1 is not None else frame["axis1"]
     frame["axis2"] = axis2 if axis2 is not None else frame["axis2"]
     frame["index"] = index if index is not None else frame["index"]
-    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
     frame["pixelwidth"] = pixelwidth if pixelwidth is not None else frame["pixelwidth"]
 
     i = len(frame["viewpos"]) - 1
     cube = cubes.get_cube(frame["cube"])
-    dimensions = []
-    head = cube
-    while i >= 0:
-        dimensions.append(len(head))
-        head = head[0]
-        i -= 1
-    dimensions = dimensions[::-1]
+    dimensions = cubes.get_cube_dimensions(frame["cube"])
+    d = len(dimensions)-1
+    ax1, ax2, ax3 = d-frame["axis1"], d-frame["axis2"], d-frame["index"]
     width = dimensions[ax3]
     frame["views"] = []
     for i in range(width):
         viewpos = tuple([v + (i * (_i == ax3)) for _i, v in enumerate(frame["viewpos"])])
-        frame["views"].append(get_view(cube, viewpos, ax1, ax2))
+        frame["views"].append(get_view(cube, viewpos, dimensions, ax1, ax2))
         draw_frame(dest, name, font, redraw=True)
 
 def get_frame_at(pos):

@@ -120,7 +120,10 @@ def process():
 
             if e.key == K_r:
                 log(inputs.input_generic_rule(SCREEN, FONTS[FONT], SCREEN, draw))
-                
+
+            if e.key == K_s:
+                log(inputs.input_slice(SCREEN, FONTS[FONT], SCREEN, draw))
+
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
 

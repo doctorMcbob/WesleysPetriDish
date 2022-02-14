@@ -23,7 +23,7 @@ def build_cube(name, seed, length, rule):
         board = buildfunction(board, dimensions[seed])
     cubes[name] = cube
     dimensions[name] = tuple(
-        [n for n in dimensions[seed]] + [len(cube)]
+        [len(cube)]+[n for n in dimensions[seed]]
     )
     return "Built to cube {} with rule {} starting from cube {}".format(name, rule, seed)
 
@@ -36,3 +36,9 @@ def get_cube(name):
 def get_cube_dimensions(name):
     return dimensions[name]
 
+def make_slice(sliceto, slicefrom, idx):
+    s = cubes[slicefrom][idx]
+    if not type(s) == list: return "Cannot slice from 1 dimensional"
+    cubes[sliceto] = s
+    dimensions[sliceto] = dimensions[slicefrom][1:]
+    return "Sliced {} at index {} to cube {}".format(slicefrom, idx, sliceto) 

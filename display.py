@@ -9,16 +9,10 @@ from datetime import datetime
 from multiarray import ndimensional
 from utils import getAt, setAt
 
-def get_view(multiarray, position, axis1, axis2):
+def get_view(multiarray, position, dimensions, axis1, axis2):
     view = []
     i = len(position)-1
     head = multiarray
-    dimensions = []
-    while i >= 0:
-        dimensions.append(len(head))
-        head = head[0]
-        i -= 1
-    dimensions = dimensions[::-1]
     width = dimensions[axis1]
     height = dimensions[axis2]
     x = position[axis1]
@@ -36,13 +30,13 @@ def get_view(multiarray, position, axis1, axis2):
 def drawn_view(view,
                pixelwidth=32, off=(255, 255, 255),
                on=(0, 0, 0), bg=(120, 120, 120), other=(120, 120, 120)):
-    surf = Surface((len(view)*pixelwidth, len(view[0])*pixelwidth))
+    surf = Surface((len(view[0])*pixelwidth, len(view)*pixelwidth))
     for x, row in enumerate(view):
         for y, slot in enumerate(row):
             col = on if slot == 1 else other
             if not slot: col = off
             if view[x][y] is None: col = bg
-            pygame.draw.rect(surf, col, Rect((x*pixelwidth, y*pixelwidth), (pixelwidth, pixelwidth)))
+            pygame.draw.rect(surf, col, Rect((y*pixelwidth, x*pixelwidth), (pixelwidth, pixelwidth)))
     return surf
 
 def pretty_print_view(view):

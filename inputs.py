@@ -173,7 +173,7 @@ def input_frame(dest, font, args=None, cb=lambda *args: None):
     
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
-    width, height = dim
+    height, width = dim
     board = startfrom or ndimensional(2, dim, filler=0)
     while True:
         cb(args)
@@ -305,6 +305,7 @@ def input_generic_rule(dest, font, args=None, cb=lambda *args: None):
 def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
     if n==1: return input_1d_rule(dest, font, args, cb)
     board = ndimensional(n, tuple(3 for _ in range(n)), filler=0)
+    setAt(board, [1 for _ in range(n)], 2)
     done = False
     while not done:
         cb(args)
@@ -314,17 +315,18 @@ def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
         x, y = 16, 16
         for point in points:
             pos = [0, 0] + point
-            view = get_view(board, pos, 0, 1)
+            view = get_view(board, pos, tuple(3 for _ in range(n)), 0, 1)
             drawn = drawn_view(view, pixelwidth=16)
-            if x + drawn.get_width() > dest.get_width():
+            text = font.render("{}".format(pos[2:]), 0, (0, 0, 0))
+            if x + max((drawn.get_width(), text.get_width())) > dest.get_width():
                 x = 16
                 y += drawn.get_height() + 32
             if y + drawn.get_height() + 32 > dest.get_height():
                 break
-            dest.blit(font.render("{}".format(pos[2:]), 0, (0, 0, 0)), (x, y))
+            dest.blit(text, (x, y))
             dest.blit(drawn, (x, y+32))
             corners.append((x, y+32))
-            x += drawn.get_width() + 32
+            x += max((drawn.get_width(), text.get_height())) + 32
         pygame.display.update()
         for e in pygame.event.get():
             if e.type == QUIT: sys.exit()
@@ -340,7 +342,7 @@ def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
                     if left > x or x > left+16*3 or top > y or y > top+16*3:
                         continue
                     
-                    pos = [(x - left) // 16, (y - top) // 16] + point
+                    pos = [(y - top) // 16, (x - left) // 16] + point
                     value = getAt(board, pos)
                     if value is None: continue
                     setAt(board, pos, (value + 1)%3)
@@ -381,3 +383,19 @@ def input_1d_rule(dest, font, args=None, cb=lambda *args: None):
     c = "?" if c == 2 else c
 
     return "{}{}{}".format(a, b, c)
+
+def input_slice(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    if name is None: return None
+    cb(args)
+    dest.blit(font.render("Cube:", 0, (0, 0, 0)), (0, 0))
+    cube = select_from_list(dest, (64, 32), font, cubes.get_cube_names())
+    if cube is None: return None
+    cb(args)
+    dest.blit(font.render("Index:", 0, (0, 0, 0)), (0, 0))
+    idx =  select_from_list(dest, (64, 32), font, list(range(len(cubes.get_cube(cube)))))
+    if idx is None: return None
+
+    return cubes.make_slice(name, cube, idx)

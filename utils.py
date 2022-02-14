@@ -2,24 +2,24 @@ from random import randint
 from copy import deepcopy
 
 def getAt(multiarray, position):
-    axis = len(position)-1
+    axis = 0
     head = multiarray
     try:
-        while axis > 0:
+        while axis < len(position)-1:
             if position[axis] < 0: return None
             head = head[position[axis]]
-            axis -= 1
+            axis += 1
         if position[axis] < 0: return None
         return head[position[axis]]
     except IndexError:
         return None
 
 def setAt(multiarray, position, value):
-    axis = len(position)-1
+    axis = 0
     head = multiarray
-    while axis > 0:
+    while axis < len(position)-1:
         head = head[position[axis]]
-        axis -= 1
+        axis += 1
     head[position[axis]] = value
     
 def nbrs2d(x, y):
@@ -68,18 +68,5 @@ def randomize2d(board):
         for y in range(len(board)):
             setAt(board, (x, y), randint(0, 1))
 
-def expect_input(expectlist=[], args=None, cb=lambda *args:None):
-    cb(args)
-    while True:
-        pygame.display.update()
-        for e in pygame.event.get():
-            if e.type == QUIT:
-                return None
-            if e.type == KEYDOWN:
-                if expectlist:
-                    if e.key in expectlist: return e.key
-                else: return e.key
 
-if __name__ == "__main__":
-    print(nbrsnd((0, 0), 2))
-    print(points_in_dimensions((2, 2, 3)))
+
