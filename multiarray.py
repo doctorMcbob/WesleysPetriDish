@@ -1,11 +1,12 @@
 from copy import deepcopy
 
 def ndimensional(n, dimensions, filler=None):
-    i = 0
+    i = 0 #len(dimensions)-1
+
     lastlayer = [filler,] * dimensions[i]
-    while n-1 > i:
-        i += 1
-        for idx in range(len(lastlayer)):
-            lastlayer[idx] = [deepcopy(lastlayer[idx]) for _ in range(dimensions[i])]
+    while i < len(dimensions)-1:#i > 0:
+        i +=1 #-= 1
+        copy = deepcopy(lastlayer)
+        lastlayer = [deepcopy(copy) for _ in range(dimensions[i])]
     return lastlayer
 

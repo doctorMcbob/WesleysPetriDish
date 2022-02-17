@@ -2,24 +2,24 @@ from random import randint
 from copy import deepcopy
 
 def getAt(multiarray, position):
-    axis = 0
+    axis = len(position)-1
     head = multiarray
     try:
-        while axis < len(position)-1:
+        while axis > 0:
             if position[axis] < 0: return None
             head = head[position[axis]]
-            axis += 1
+            axis -= 1
         if position[axis] < 0: return None
         return head[position[axis]]
     except IndexError:
         return None
 
 def setAt(multiarray, position, value):
-    axis = 0
+    axis = len(position)-1
     head = multiarray
-    while axis < len(position)-1:
+    while axis > 0:
         head = head[position[axis]]
-        axis += 1
+        axis -= 1
     head[position[axis]] = value
     
 def nbrs2d(x, y):

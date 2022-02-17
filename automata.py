@@ -33,6 +33,8 @@ def make_generic_ndimensional(name, n, ruleset, inverted=False):
     return rule
                 
 def generic_check_against(state, rule_segment):
+    if len(state) != len(rule_segment):
+        raise IndexError("Dimensions of cube and rule do not match.")
     for idx in range(len(state)):
         slot = state[idx]
         check = rule_segment[idx]

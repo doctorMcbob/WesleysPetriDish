@@ -124,6 +124,9 @@ def process():
             if e.key == K_s:
                 log(inputs.input_slice(SCREEN, FONTS[FONT], SCREEN, draw))
 
+            if e.key == K_d:
+                log(inputs.input_splay(SCREEN, FONTS[FONT], SCREEN, draw))
+                
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
 

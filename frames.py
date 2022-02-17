@@ -108,8 +108,7 @@ def update_frame(dest, font, name,
     i = len(frame["viewpos"]) - 1
     cube = cubes.get_cube(frame["cube"])
     dimensions = cubes.get_cube_dimensions(frame["cube"])
-    d = len(dimensions)-1
-    ax1, ax2, ax3 = d-frame["axis1"], d-frame["axis2"], d-frame["index"]
+    ax1, ax2, ax3 = frame["axis1"], frame["axis2"], frame["index"]
     width = dimensions[ax3]
     frame["views"] = []
     for i in range(width):

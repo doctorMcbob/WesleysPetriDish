@@ -11,8 +11,6 @@ from utils import getAt, setAt
 
 def get_view(multiarray, position, dimensions, axis1, axis2):
     view = []
-    i = len(position)-1
-    head = multiarray
     width = dimensions[axis1]
     height = dimensions[axis2]
     x = position[axis1]

@@ -1,6 +1,8 @@
 from multiarray import ndimensional
 import automata
 
+import traceback
+
 dimensions = {}
 cubes = {}
 
@@ -20,10 +22,15 @@ def build_cube(name, seed, length, rule):
     buildfunction = automata.RULES[rule]
     while len(cube) < length:
         cube.append(board)
-        board = buildfunction(board, dimensions[seed])
+        try:
+            board = buildfunction(board, dimensions[seed])
+        except (IndexError, TypeError) as e:
+            print(dimensions[seed])
+            print(traceback.format_exc())
+            return "Failed to build to cube {} with rule {} starting from cube {}".format(name, rule, seed)
     cubes[name] = cube
     dimensions[name] = tuple(
-        [len(cube)]+[n for n in dimensions[seed]]
+        [n for n in dimensions[seed]] + [len(cube)]
     )
     return "Built to cube {} with rule {} starting from cube {}".format(name, rule, seed)
 
@@ -40,5 +47,6 @@ def make_slice(sliceto, slicefrom, idx):
     s = cubes[slicefrom][idx]
     if not type(s) == list: return "Cannot slice from 1 dimensional"
     cubes[sliceto] = s
-    dimensions[sliceto] = dimensions[slicefrom][1:]
+    dimensions[sliceto] = dimensions[slicefrom][:-1]
+    print(dimensions)
     return "Sliced {} at index {} to cube {}".format(slicefrom, idx, sliceto) 

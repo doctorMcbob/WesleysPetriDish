@@ -168,12 +168,11 @@ def input_frame(dest, font, args=None, cb=lambda *args: None):
     cb(args)
     if letter is None: return None
     idx = frames.order.index(letter)
-
     return frames.add_frame(dest, font, name, pos, dim, 4, cube, style, ax1, ax2, idx)
     
 
 def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=16, args=None, cb=lambda *args: None):
-    height, width = dim
+    width, height = dim
     board = startfrom or ndimensional(2, dim, filler=0)
     while True:
         cb(args)
@@ -204,7 +203,7 @@ def input_board(dest, position, dim, startfrom=False, style='bool', pixelwidth=1
                 px, py = e.pos
                 if not (x < px < x+width*pixelwidth and y < py < y+height*pixelwidth):
                     continue
-                pos = (py-y) // pixelwidth, (px-x) // pixelwidth
+                pos = (px-x) // pixelwidth, (py-y) // pixelwidth
                 if style=='bool': setAt(board, pos, int(not getAt(board, pos)))
                 if style.startswith('int'): setAt(board, pos, (getAt(board, pos) + 1) % int(style.split(":")[-1]))
 
@@ -342,7 +341,11 @@ def input_rule_segment(dest, font, args=None, cb=lambda *args: None, n=2):
                     if left > x or x > left+16*3 or top > y or y > top+16*3:
                         continue
                     
-                    pos = [(y - top) // 16, (x - left) // 16] + point
+                    pos = [
+                        (y - top) // 16,
+                        (x - left) // 16,
+                    ] + point
+
                     value = getAt(board, pos)
                     if value is None: continue
                     setAt(board, pos, (value + 1)%3)
@@ -399,3 +402,66 @@ def input_slice(dest, font, args=None, cb=lambda *args: None):
     if idx is None: return None
 
     return cubes.make_slice(name, cube, idx)
+
+def input_splay(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Name:", 0, (0, 0, 0)), (0, 0))
+    name = get_text_input(dest, font, (64, 0))
+    cb(args)
+    if name is None: return None
+    pos, dim = input_rect(dest, font, args=args, cb=cb)
+    cb(args)
+    if pos is None: return None
+    dest.blit(font.render("Style:", 0, (0, 0, 0)), (0, 0))
+    cb(args)
+    style = select_from_list(dest, (64, 32), font, frames.styles)
+    if style is None: return None
+    cb(args)
+    dest.blit(font.render("Cube:", 0, (0, 0, 0)), (0, 0))
+    cube = select_from_list(dest, (64, 32), font, cubes.get_cube_names())
+    cb(args)
+    if cube is None: return None
+    dimensions = cubes.get_cube_dimensions(cube)
+    cb(args)
+    dest.blit(font.render("Axis 1:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    cb(args)
+    if letter is None: return None
+    ax1 = frames.order.index(letter)
+    cb(args)
+    dest.blit(font.render("Axis 2:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    cb(args)
+    if letter is None: return None
+    ax2 = frames.order.index(letter)
+    cb(args)
+    dest.blit(font.render("Index:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    cb(args)
+    if letter is None: return None
+    idx = frames.order.index(letter)
+    dest.blit(font.render("Splay:", 0, (0, 0, 0)), (0, 0))
+    letter = select_from_list(dest, (64, 32), font, frames.order[:len(dimensions)])
+    sdx = frames.order.index(letter)
+    cb(args)
+    if letter is None: return None
+    splay = frames.order.index(letter)
+
+    head = cubes.get_cube(cube)
+    i = 0
+
+    while i < len(dimensions) - sdx-1:
+        head = head[0]
+        i += 1
+
+    x, y = pos
+    w, h = dim
+    for i, cube_segment in enumerate(head):
+        segment_name = "{name}{i}".format(name=name, i=i)
+        cubes.add_pre_built(segment_name, dimensions[:sdx], cube_segment)
+        frames.add_frame(dest, font, segment_name, (x, y), (w, h), 4, segment_name, style, ax1, ax2, idx)
+        x += w
+
+    return "Splayed {} across {} frames".format(cube, len(head))
+    
+        
