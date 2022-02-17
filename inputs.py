@@ -464,4 +464,9 @@ def input_splay(dest, font, args=None, cb=lambda *args: None):
 
     return "Splayed {} across {} frames".format(cube, len(head))
     
-        
+def input_delete_frame(dest, font, args=None, cb=lambda *args: None):
+    cb(args)
+    dest.blit(font.render("Frame:", 0, (0, 0, 0)), (0, 0))
+    frame = select_from_list(dest, (64, 32), font, frames.get_frame_names())
+    if frame is None: return None
+    return frames.delete_frame(frame)

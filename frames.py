@@ -180,3 +180,7 @@ def get_context_names():
         return framenames
     except IOError:
         return []
+
+def delete_frame(name):
+    frames.pop(name)
+    return "Deleted frame {}".format(name)

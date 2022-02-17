@@ -126,6 +126,12 @@ def process():
 
             if e.key == K_d:
                 log(inputs.input_splay(SCREEN, FONTS[FONT], SCREEN, draw))
+
+            if e.key == K_BACKSPACE:
+                if name:
+                    log(frames.delete_frame(name))
+                else:
+                    log(inputs.input_delete_frame(SCREEN, FONTS[FONT], SCREEN, draw))
                 
         elif e.type == MOUSEMOTION:
             MPOS = e.pos
